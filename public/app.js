@@ -1,4 +1,4 @@
-// RAGE ARENA — Client
+// RAGE ARENA — Client (updated with clickable mentions in text)
 const socket = io();
 
 let currentUser = null;
@@ -147,13 +147,14 @@ function insertMention(name) {
   messageInput.focus();
   messageInput.selectionStart = messageInput.value.length;
 }
-// Click on nickname inside chat messages → insert @mention
+
+// Click on nickname (sender or @mention in text) → insert into input
 chatArea.addEventListener('click', (e) => {
-  if (e.target.classList.contains('sender')) {
-    const name = e.target.textContent.trim();
-    if (name) {
-      insertMention(name);
-    }
+  const t = e.target;
+  if (t.classList.contains('sender') || t.classList.contains('mention')) {
+    let name = t.dataset.name || t.textContent.trim();
+    if (name.startsWith('@')) name = name.slice(1);
+    if (name) insertMention(name);
   }
 });
 
@@ -287,22 +288,30 @@ function appendMessage(msg, skipScroll = false) {
 
     el.innerHTML = `
       ${senderHTML}
-      <div>${escapeHtml(msg.text)}</div>
+      <div>${renderMessageWithMentions(msg.text)}</div>
       <div class="text-[9px] text-right mt-px opacity-40 tabular-nums">${timeStr}</div>
     `;
 
-    // Make sender nickname clickable for mention (works for history and new messages)
+    // Make sender nickname clickable
     const senderEl = el.querySelector('.sender');
     if (senderEl) {
       senderEl.addEventListener('click', () => {
         insertMention(msg.sender);
       });
     }
+
+    // Make @mentions in the message text clickable
+    const mentionEls = el.querySelectorAll('.mention');
+    mentionEls.forEach(mEl => {
+      const name = mEl.dataset.name || mEl.textContent.replace(/^@/, '');
+      mEl.addEventListener('click', () => {
+        if (name) insertMention(name);
+      });
+    });
   }
 
   chatArea.appendChild(el);
 
-  // Trim old DOM messages
   while (chatArea.children.length > 90) {
     chatArea.removeChild(chatArea.firstChild);
   }
@@ -315,7 +324,6 @@ function scrollToBottom() {
 }
 
 function flashPlayer(username, isStrong = false) {
-  // Find the player card and flash it
   const cards = Array.from(playersList.children);
   for (const card of cards) {
     if (card.textContent.includes(username)) {
@@ -361,6 +369,7 @@ function showInstructions() {
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">4.</span> <span>Когда HP падает до 0 — игрок <strong>замолкает на 60 секунд</strong> и теряет рейтинг</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">5.</span> <span>Клик по игроку в списке — быстро вставить @</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">6.</span> <span>Двойной клик по игроку = быстрый роаст (авто-атака)</span></li>
+        <li class="flex gap-3"><span class="font-mono text-red-400 w-5">7.</span> <span>Клик по @ник внутри сообщения — тоже вставляет в ввод</span></li>
       </ul>
 
       <div class="mt-6 text-xs bg-zinc-950 border border-zinc-800 p-3 rounded-xl">
@@ -382,3 +391,18 @@ usernameInput.addEventListener('focus', () => {
 });
 
 console.log('%c[RAGE ARENA] Client ready. Open multiple tabs!', 'color:#444');
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[s]));
+}
+
+// Turn @mentions inside message text into clickable spans
+function renderMessageWithMentions(text) {
+  let escaped = escapeHtml(text);
+  escaped = escaped.replace(/@([A-Za-z0-9_\u0400-\u04FF]{2,20})/g, (full, name) => {
+    return `<span class="mention" data-name="${name}">${full}</span>`;
+  });
+  return escaped;
+}
