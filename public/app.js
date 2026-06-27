@@ -290,6 +290,14 @@ function appendMessage(msg, skipScroll = false) {
       <div>${escapeHtml(msg.text)}</div>
       <div class="text-[9px] text-right mt-px opacity-40 tabular-nums">${timeStr}</div>
     `;
+
+    // Make sender nickname clickable for mention (works for history and new messages)
+    const senderEl = el.querySelector('.sender');
+    if (senderEl) {
+      senderEl.addEventListener('click', () => {
+        insertMention(msg.sender);
+      });
+    }
   }
 
   chatArea.appendChild(el);
@@ -350,7 +358,7 @@ function showInstructions() {
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">1.</span> <span>Упомяни человека через <span class="font-semibold">@Имя</span> в сообщении</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">2.</span> <span>Добавь любое ругательство (сука, бля, пиздец, хуй, мудак...)</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">3.</span> <span>Цель получает урон по HP (14-42 за атаку)</span></li>
-        <li class="flex gap-3"><span class="font-mono text-red-400 w-5">4.</span> <span>Когда HP падает до 0 — игрок <strong>замолчает на 60 секунд</strong> и теряет рейтинг</span></li>
+        <li class="flex gap-3"><span class="font-mono text-red-400 w-5">4.</span> <span>Когда HP падает до 0 — игрок <strong>замолкает на 60 секунд</strong> и теряет рейтинг</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">5.</span> <span>Клик по игроку в списке — быстро вставить @</span></li>
         <li class="flex gap-3"><span class="font-mono text-red-400 w-5">6.</span> <span>Двойной клик по игроку = быстрый роаст (авто-атака)</span></li>
       </ul>
