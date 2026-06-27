@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# Git post-receive hook for RAGE ARENA deployment
+# 
+# Usage on server:
+#   cd /var/www/rage.xedoc.ru.git/hooks
+#   cp /path/to/this/post-receive .
+#   chmod +x post-receive
+#
+# Then from your local machine:
+#   git remote add production ssh://user@82.146.42.213/var/www/rage.xedoc.ru.git
+#   git push production main
+
+set -e
+
+echo "=== Deploying RAGE ARENA ==="
+
+# The working tree where the app lives
+WORK_TREE="/var/www/rage.xedoc.ru"
+
+# Checkout the latest code
+echo "→ Checking out latest code..."
+GIT_WORK_TREE="$WORK_TREE" git checkout -f main || GIT_WORK_TREE="$WORK_TREE" git checkout -f
+
+cd "$WORK_TREE"
+
+# Install dependencies (production only)
+echo "→ Installing dependencies..."
+npm ci --production
+
+# Create logs dir if not exists
+mkdir -p logs
+
+# Restart or start with PM2
+echo "→ Restarting with PM2..."
+if pm2 list | grep -q "rage-arena"; then
+    pm2 restart rage-arena --update-env
+else
+    pm2 start ecosystem.config.js --env production
+fi
+
+# Save PM2 process list
+pm2 save
+
+echo "✅ Deployment complete!"
+echo "App should be running at http://localhost:3000"
+echo "Access via domain: https://rage.xedoc.ru (after nginx + SSL)"
+
+# Optional: show status
+pm2 status
