@@ -108,6 +108,22 @@ body {
   font-weight: 700;
   color: #f43f5e;
   margin-bottom: 1px;
+  cursor: pointer;
+}
+
+.message .sender:hover {
+  text-decoration: underline;
+  color: #fb7185;
+}
+
+.message .mention {
+  color: #fb7185;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.message .mention:hover {
+  text-decoration: underline;
 }
 
 .message.own .sender {

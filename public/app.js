@@ -148,6 +148,18 @@ function insertMention(name) {
   messageInput.selectionStart = messageInput.value.length;
 }
 
+// Click on nickname (sender or @mention in text) inside chat messages → insert @mention
+chatArea.addEventListener('click', (e) => {
+  const t = e.target;
+  if (t.classList.contains('sender') || t.classList.contains('mention')) {
+    let name = t.dataset.name || t.textContent.trim();
+    if (name.startsWith('@')) name = name.slice(1);
+    if (name) {
+      insertMention(name);
+    }
+  }
+});
+
 function updateMyStatus() {
   const me = users.find(u => u.username === currentUser);
   if (!me) {
@@ -278,9 +290,26 @@ function appendMessage(msg, skipScroll = false) {
 
     el.innerHTML = `
       ${senderHTML}
-      <div>${escapeHtml(msg.text)}</div>
+      <div>${renderMessageWithMentions(msg.text)}</div>
       <div class="text-[9px] text-right mt-px opacity-40 tabular-nums">${timeStr}</div>
     `;
+
+    // Make sender nickname clickable for mention (works for history and new messages)
+    const senderEl = el.querySelector('.sender');
+    if (senderEl) {
+      senderEl.addEventListener('click', () => {
+        insertMention(msg.sender);
+      });
+    }
+
+    // Make @mentions inside the message text clickable
+    const mentionEls = el.querySelectorAll('.mention');
+    mentionEls.forEach(mEl => {
+      const name = mEl.dataset.name || mEl.textContent.replace(/^@/, '');
+      mEl.addEventListener('click', () => {
+        if (name) insertMention(name);
+      });
+    });
   }
 
   chatArea.appendChild(el);
@@ -319,6 +348,16 @@ function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, s => ({
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[s]));
+}
+
+// Turn @mentions inside message text into clickable spans
+function renderMessageWithMentions(text) {
+  let escaped = escapeHtml(text);
+  // Same pattern as server (allows _ and Cyrillic)
+  escaped = escaped.replace(/@([A-Za-z0-9_\u0400-\u04FF]{2,20})/g, (full, name) => {
+    return `<span class="mention" data-name="${name}">${full}</span>`;
+  });
+  return escaped;
 }
 
 // Keyboard shortcut: focus input on /
