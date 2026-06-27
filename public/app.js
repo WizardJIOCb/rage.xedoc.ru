@@ -8,7 +8,9 @@ let isSilenced = false;
 const joinScreen = document.getElementById('join-screen');
 const app = document.getElementById('app');
 const usernameInput = document.getElementById('username-input');
-const joinBtn = document.getElementById('join-btn');
+const passwordInput = document.getElementById('password-input');
+const loginBtn = document.getElementById('login-btn');
+const registerBtn = document.getElementById('register-btn');
 const joinError = document.getElementById('join-error');
 
 const playersList = document.getElementById('players-list');
@@ -19,21 +21,52 @@ const onlineCount = document.getElementById('online-count');
 const playersCount = document.getElementById('players-count');
 const myStatus = document.getElementById('my-status');
 
-// Join flow
-joinBtn.addEventListener('click', attemptJoin);
+// Join / Auth flow
 usernameInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') attemptJoin();
+  if (e.key === 'Enter') attemptLogin();
+});
+passwordInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') attemptLogin();
 });
 
-function attemptJoin() {
+loginBtn.addEventListener('click', attemptLogin);
+
+function attemptLogin() {
   const name = usernameInput.value.trim();
-  if (!name) {
-    joinError.textContent = 'Введите имя';
+  const pass = passwordInput.value;
+  if (!name || !pass) {
+    joinError.textContent = 'Введите имя и пароль';
     return;
   }
   joinError.textContent = '';
-  socket.emit('join', name);
+  socket.emit('login', { username: name, password: pass });
 }
+
+registerBtn.addEventListener('click', () => {
+  const name = usernameInput.value.trim();
+  const pass = passwordInput.value;
+  if (!name || !pass || pass.length < 4) {
+    joinError.textContent = 'Имя и пароль (мин. 4 символа)';
+    return;
+  }
+  joinError.textContent = '';
+  socket.emit('register', { username: name, password: pass });
+});
+
+socket.on('authError', (msg) => {
+  joinError.textContent = msg;
+});
+
+socket.on('registerSuccess', ({ username }) => {
+  joinError.textContent = 'Регистрация успешна! Входим в арену...';
+  socket.emit('join');
+});
+
+socket.on('loginSuccess', ({ username }) => {
+  joinError.textContent = '';
+  // Now join the arena
+  socket.emit('join');
+});
 
 socket.on('joinError', (msg) => {
   joinError.textContent = msg;
@@ -115,6 +148,10 @@ function renderPlayers() {
             ${isDead ? '💀' : ''} ${user.hp}/100
           </div>
           ${isDead ? `<div class="text-[10px] font-mono text-red-400">⏱ ${remaining}с</div>` : ''}
+        </div>
+
+        <div class="text-[9px] font-mono text-zinc-400 mt-0.5">
+          K/D/A: ${user.kills || 0}/${user.deaths || 0}/${user.assists || 0}
         </div>
       </div>
     `;

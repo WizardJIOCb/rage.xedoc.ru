@@ -25,15 +25,29 @@
                  placeholder="ТвоёИмя" value="Боец">
         </div>
 
-        <button id="join-btn"
-                class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 transition font-bold text-lg py-3.5 rounded-xl shadow-lg">
-          ВОЙТИ В АРЕНУ
-        </button>
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1.5 font-medium">ПАРОЛЬ</label>
+          <input id="password-input" type="password" maxlength="32"
+                 class="w-full bg-zinc-950 border border-zinc-700 focus:border-red-600 rounded-xl px-4 py-3 text-lg font-semibold outline-none"
+                 placeholder="Пароль">
+        </div>
+
+        <div class="flex gap-3">
+          <button id="register-btn"
+                  class="flex-1 bg-zinc-700 hover:bg-zinc-600 active:bg-zinc-800 transition font-bold text-sm py-3.5 rounded-xl border border-zinc-600">
+            ЗАРЕГИСТРИРОВАТЬСЯ
+          </button>
+          <button id="login-btn"
+                  class="flex-1 bg-red-600 hover:bg-red-500 active:bg-red-700 transition font-bold text-sm py-3.5 rounded-xl shadow-lg">
+            ВОЙТИ В АРЕНУ
+          </button>
+        </div>
 
         <p id="join-error" class="text-red-400 text-sm text-center min-h-[20px]"></p>
       </div>
 
       <div class="mt-8 text-center text-xs text-zinc-500">
+        Регистрация обязательна. Рейтинг сохраняется.<br>
         Пиши сообщения с матами + @ник — наносишь урон HP<br>
         Когда HP = 0 игрок замолкает на 60 сек и теряет рейтинг
       </div>
@@ -78,6 +92,7 @@
 
         <div class="p-3 border-t border-zinc-800 text-[10px] text-zinc-500 shrink-0">
           Кликни по игроку — вставится @ник<br>
+          K/D/A: убийства / смерти / ассисты<br>
           Пиши мат + @человек = урон
         </div>
       </div>
