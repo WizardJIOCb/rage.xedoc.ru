@@ -147,6 +147,15 @@ function insertMention(name) {
   messageInput.focus();
   messageInput.selectionStart = messageInput.value.length;
 }
+// Click on nickname inside chat messages → insert @mention
+chatArea.addEventListener('click', (e) => {
+  if (e.target.classList.contains('sender')) {
+    const name = e.target.textContent.trim();
+    if (name) {
+      insertMention(name);
+    }
+  }
+});
 
 function updateMyStatus() {
   const me = users.find(u => u.username === currentUser);

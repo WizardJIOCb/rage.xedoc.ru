@@ -108,6 +108,12 @@ body {
   font-weight: 700;
   color: #f43f5e;
   margin-bottom: 1px;
+  cursor: pointer;
+}
+
+.message .sender:hover {
+  text-decoration: underline;
+  color: #fb7185;
 }
 
 .message.own .sender {
