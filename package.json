@@ -1,0 +1,17 @@
+{
+  "name": "rage-arena",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "💀 RAGE ARENA — Убойный онлайн чат. Пиши ругательства с @упоминанием — наноси урон HP. Умер = молчи 60 сек.",
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3"
+  }
+}

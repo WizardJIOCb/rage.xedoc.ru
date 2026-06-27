@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RAGE ARENA 🔥 — Убойный Чат</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-zinc-950 text-white">
+  <!-- JOIN SCREEN -->
+  <div id="join-screen" class="fixed inset-0 bg-black/95 flex items-center justify-center z-50">
+    <div class="bg-zinc-900 border border-red-900/60 rounded-2xl p-8 w-full max-w-md mx-4 shadow-2xl">
+      <div class="text-center mb-6">
+        <div class="text-6xl mb-2">💀</div>
+        <h1 class="text-4xl font-black tracking-tighter">RAGE ARENA</h1>
+        <p class="text-red-400 text-sm mt-1">Оскорбляй. Убивай. Выживай.</p>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-zinc-400 mb-1.5 font-medium">ТВОЙ НИК В АРЕНЕ</label>
+          <input id="username-input" type="text" maxlength="18"
+                 class="w-full bg-zinc-950 border border-zinc-700 focus:border-red-600 rounded-xl px-4 py-3 text-lg font-semibold outline-none"
+                 placeholder="ТвоёИмя" value="Боец">
+        </div>
+
+        <button id="join-btn"
+                class="w-full bg-red-600 hover:bg-red-500 active:bg-red-700 transition font-bold text-lg py-3.5 rounded-xl shadow-lg">
+          ВОЙТИ В АРЕНУ
+        </button>
+
+        <p id="join-error" class="text-red-400 text-sm text-center min-h-[20px]"></p>
+      </div>
+
+      <div class="mt-8 text-center text-xs text-zinc-500">
+        Пиши сообщения с матами + @ник — наносишь урон HP<br>
+        Когда HP = 0 игрок замолкает на 60 сек и теряет рейтинг
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app" class="hidden h-screen flex flex-col">
+    <!-- HEADER -->
+    <div class="bg-zinc-900 border-b border-zinc-800 px-6 py-3 flex items-center justify-between shrink-0">
+      <div class="flex items-center gap-x-3">
+        <div class="text-3xl">💀</div>
+        <div>
+          <div class="font-black text-2xl tracking-[-1.5px]">RAGE ARENA</div>
+          <div class="text-[10px] text-red-400 -mt-1">VERBAL COMBAT • REALTIME</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-x-3 text-sm">
+        <div class="px-3 py-1 bg-zinc-950 rounded-full border border-zinc-800 flex items-center gap-x-2">
+          <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          <span id="online-count" class="font-semibold">0</span> онлайн
+        </div>
+        <button onclick="showInstructions()" 
+                class="px-4 py-1.5 rounded-full border border-zinc-700 hover:bg-zinc-900 text-xs font-medium">
+          КАК ИГРАТЬ
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-1 overflow-hidden">
+      <!-- PLAYERS SIDEBAR -->
+      <div class="w-80 bg-zinc-900 border-r border-zinc-800 flex flex-col">
+        <div class="px-4 py-3 border-b border-zinc-800 text-sm font-bold flex items-center justify-between shrink-0">
+          <span>УЧАСТНИКИ АРЕНЫ</span>
+          <span id="players-count" class="font-mono text-red-400 text-xs"></span>
+        </div>
+
+        <div id="players-list" class="flex-1 overflow-y-auto p-3 space-y-2 text-sm custom-scroll">
+          <!-- Populated by JS -->
+        </div>
+
+        <div class="p-3 border-t border-zinc-800 text-[10px] text-zinc-500 shrink-0">
+          Кликни по игроку — вставится @ник<br>
+          Пиши мат + @человек = урон
+        </div>
+      </div>
+
+      <!-- CHAT -->
+      <div class="flex-1 flex flex-col bg-zinc-950">
+        <!-- CHAT AREA -->
+        <div id="chat-area" 
+             class="flex-1 overflow-y-auto p-4 space-y-3 custom-scroll bg-[radial-gradient(#27272a_0.5px,transparent_1px)] bg-[length:4px_4px]">
+          <!-- messages injected here -->
+        </div>
+
+        <!-- INPUT -->
+        <div class="border-t border-zinc-800 bg-zinc-900 p-3 shrink-0">
+          <form id="message-form" class="flex gap-2">
+            <input id="message-input" type="text" maxlength="280" autocomplete="off"
+                   class="flex-1 bg-zinc-950 border border-zinc-700 focus:border-red-600 text-white placeholder:text-zinc-500 rounded-2xl px-5 py-3 outline-none text-[15px]"
+                   placeholder="Напиши сообщение... (используй @имя + мат для атаки)">
+            
+            <button type="submit"
+                    class="bg-red-600 hover:bg-red-500 active:bg-red-700 px-8 font-bold rounded-2xl transition text-sm tracking-wider">
+              ОТПРАВИТЬ
+            </button>
+          </form>
+          <div class="flex justify-between items-center mt-1.5 px-1 text-[10px] text-zinc-500">
+            <div>
+              <span class="text-red-400">Пример:</span> @Громила ты сука!
+            </div>
+            <div id="my-status" class="font-mono text-amber-400"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
