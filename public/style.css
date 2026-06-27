@@ -126,6 +126,15 @@ body {
   text-decoration: underline;
 }
 
+/* General clickable nicks (used in attacks, system messages, death, player names, etc.) */
+.nick {
+  cursor: pointer;
+}
+
+.nick:hover {
+  text-decoration: underline;
+}
+
 .message.own .sender {
   color: #64748b;
 }

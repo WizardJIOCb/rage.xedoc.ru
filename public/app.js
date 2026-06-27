@@ -102,7 +102,7 @@ function renderPlayers() {
     div.innerHTML = `
       <div class="flex-1 min-w-0">
         <div class="flex items-baseline justify-between">
-          <div class="name truncate ${isDead ? 'line-through text-zinc-400' : ''}">${escapeHtml(user.username)}</div>
+          <div class="name nick truncate ${isDead ? 'line-through text-zinc-400' : ''}" data-name="${user.username}">${escapeHtml(user.username)}</div>
           <div class="text-xs tabular-nums font-mono ${isDead ? 'text-red-700' : 'text-zinc-400'}">${user.rating}</div>
         </div>
 
@@ -148,10 +148,10 @@ function insertMention(name) {
   messageInput.selectionStart = messageInput.value.length;
 }
 
-// Click on nickname (sender or @mention in text) inside chat messages → insert @mention
+// Click on any nickname (sender, @mention, or any nick in system/attack/death) → insert @name into input
 chatArea.addEventListener('click', (e) => {
   const t = e.target;
-  if (t.classList.contains('sender') || t.classList.contains('mention')) {
+  if (t.classList.contains('sender') || t.classList.contains('mention') || t.classList.contains('nick')) {
     let name = t.dataset.name || t.textContent.trim();
     if (name.startsWith('@')) name = name.slice(1);
     if (name) {
@@ -216,13 +216,13 @@ socket.on('attack', ({ attacker, target, damage }) => {
   const isMeTarget = target === currentUser;
   const isMeAttacker = attacker === currentUser;
 
-  // Inject a nice attack line
+  // Inject a nice attack line with clickable nicks
   const attackLine = document.createElement('div');
   attackLine.className = `message system text-sm ${isMeTarget ? 'text-red-400' : ''}`;
   attackLine.innerHTML = `
-    <span class="font-bold text-red-400">${escapeHtml(attacker)}</span> 
+    ${makeNickSpan(attacker)} 
     <span class="text-red-500">напал на</span> 
-    <span class="font-bold">${escapeHtml(target)}</span> 
+    ${makeNickSpan(target)} 
     <span class="font-mono text-red-400">-${damage} HP</span>
   `;
   chatArea.appendChild(attackLine);
@@ -244,10 +244,12 @@ socket.on('attack', ({ attacker, target, damage }) => {
 
 socket.on('death', ({ username, attacker }) => {
   // Already handled by system message from server + userList
-  // Extra flair
+  // Extra flair with clickable nicks
   const deathEl = document.createElement('div');
   deathEl.className = 'message death my-1';
-  deathEl.textContent = `☠️ ${username} убит${attacker ? ' ' + attacker : ''}`;
+  let html = `☠️ ${makeNickSpan(username)} убит`;
+  if (attacker) html += ` от рук ${makeNickSpan(attacker)}`;
+  deathEl.innerHTML = html;
   chatArea.appendChild(deathEl);
   scrollToBottom();
 });
@@ -275,17 +277,17 @@ function appendMessage(msg, skipScroll = false) {
 
   if (msg.type === 'system') {
     el.className = 'message system';
-    el.innerHTML = `<span class="opacity-60">[${timeStr}]</span> ${escapeHtml(msg.text)}`;
+    el.innerHTML = `<span class="opacity-60">[${timeStr}]</span> ${renderMessageWithMentions(msg.text)}`;
   } else if (msg.type === 'death') {
     el.className = 'message death mx-auto my-1';
-    el.textContent = msg.text;
+    el.innerHTML = renderMessageWithMentions(msg.text);
   } else {
     // normal chat
     const isOwn = msg.sender === currentUser;
     el.className = `message px-4 py-2.5 rounded-3xl text-[15px] leading-snug break-words ${isOwn ? 'own' : 'other'}`;
 
     const senderHTML = !isOwn 
-      ? `<div class="sender">${escapeHtml(msg.sender)}</div>` 
+      ? `<div class="nick sender" data-name="${msg.sender}">${escapeHtml(msg.sender)}</div>` 
       : '';
 
     el.innerHTML = `
@@ -293,23 +295,6 @@ function appendMessage(msg, skipScroll = false) {
       <div>${renderMessageWithMentions(msg.text)}</div>
       <div class="text-[9px] text-right mt-px opacity-40 tabular-nums">${timeStr}</div>
     `;
-
-    // Make sender nickname clickable for mention (works for history and new messages)
-    const senderEl = el.querySelector('.sender');
-    if (senderEl) {
-      senderEl.addEventListener('click', () => {
-        insertMention(msg.sender);
-      });
-    }
-
-    // Make @mentions inside the message text clickable
-    const mentionEls = el.querySelectorAll('.mention');
-    mentionEls.forEach(mEl => {
-      const name = mEl.dataset.name || mEl.textContent.replace(/^@/, '');
-      mEl.addEventListener('click', () => {
-        if (name) insertMention(name);
-      });
-    });
   }
 
   chatArea.appendChild(el);
@@ -350,14 +335,38 @@ function escapeHtml(str) {
   }[s]));
 }
 
-// Turn @mentions inside message text into clickable spans
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Turn any text into HTML with all nicknames (senders, mentions, bare names in system/attacks) as clickable spans
 function renderMessageWithMentions(text) {
   let escaped = escapeHtml(text);
-  // Same pattern as server (allows _ and Cyrillic)
+
+  // 1. Wrap @mentions (keeps the @ symbol)
   escaped = escaped.replace(/@([A-Za-z0-9_\u0400-\u04FF]{2,20})/g, (full, name) => {
-    return `<span class="mention" data-name="${name}">${full}</span>`;
+    return `<span class="nick mention" data-name="${name}">${full}</span>`;
   });
+
+  // 2. Wrap bare known usernames (very useful for system messages like "Bob joined", death texts, etc.)
+  if (Array.isArray(users) && users.length > 0) {
+    // Longest first to avoid partial matches
+    const sorted = [...users].sort((a, b) => b.username.length - a.username.length);
+    sorted.forEach(u => {
+      const name = u.username;
+      const safe = escapeHtml(name);
+      const regex = new RegExp(`(?<![@\\w>])${escapeRegex(safe)}(?![\\w<])`, 'g');
+      escaped = escaped.replace(regex, `<span class="nick" data-name="${name}">${safe}</span>`);
+    });
+  }
+
   return escaped;
+}
+
+// Helper to create a single clickable nick span
+function makeNickSpan(name) {
+  const safe = escapeHtml(name);
+  return `<span class="nick" data-name="${name}">${safe}</span>`;
 }
 
 // Keyboard shortcut: focus input on /

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>RAGE ARENA — Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="bg-zinc-950 text-white p-8">
+  <div class="max-w-3xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-3xl font-black">RAGE ARENA Admin</h1>
+        <p class="text-red-400 text-sm">Управление ботами</p>
+      </div>
+      <div class="flex gap-3">
+        <button id="pause-btn" 
+                class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-medium">
+          ⏸ Пауза всех ботов
+        </button>
+        <a href="/" class="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 rounded-xl text-sm font-medium flex items-center">
+          ← Назад в чат
+        </a>
+      </div>
+    </div>
+
+    <!-- Add bot -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 mb-6">
+      <div class="font-bold mb-3">Добавить бота</div>
+      <div class="flex gap-3">
+        <input id="new-bot-name" type="text" placeholder="Имя бота (например: Псих_69)" 
+               class="flex-1 bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-2 text-sm outline-none">
+        <button id="add-bot-btn"
+                class="bg-red-600 hover:bg-red-500 px-6 rounded-xl font-medium">Добавить</button>
+      </div>
+      <div class="text-xs text-zinc-500 mt-2">Бот будет использовать общий пул фраз. Можно добавлять несколько.</div>
+    </div>
+
+    <!-- Bots list -->
+    <div class="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+      <div class="px-5 py-3 border-b border-zinc-800 font-bold flex justify-between items-center">
+        <span>Боты</span>
+        <span id="bots-count" class="text-xs text-zinc-500"></span>
+      </div>
+      <div id="bots-list" class="divide-y divide-zinc-800"></div>
+    </div>
+
+    <div class="mt-6 text-xs text-zinc-500">
+      Изменения применяются в реальном времени. Боты не пишут, когда выключены или на паузе.
+    </div>
+
+    <div id="status" class="mt-4 text-[10px] text-zinc-500 font-mono">connecting...</div>
+  </div>
+
+  <script>
+    const socket = io();
+
+    let currentBots = [];
+
+    socket.on('connect', () => {
+      const st = document.getElementById('status');
+      if (st) st.textContent = 'connected • ' + socket.id?.slice(0,6);
+      socket.emit('admin:getBots');
+    });
+
+    socket.on('disconnect', () => {
+      const st = document.getElementById('status');
+      if (st) st.textContent = 'disconnected';
+    });
+
+    function renderBots(bots) {
+      currentBots = bots;
+      const container = document.getElementById('bots-list');
+      container.innerHTML = '';
+
+      if (bots.length === 0) {
+        container.innerHTML = `<div class="px-5 py-6 text-center text-zinc-500 text-sm">Ботов пока нет</div>`;
+        return;
+      }
+
+      bots.forEach(bot => {
+        const div = document.createElement('div');
+        div.className = 'px-5 py-4 flex items-center justify-between hover:bg-zinc-950';
+
+        const isActive = bot.active;
+
+        div.innerHTML = `
+          <div class="flex items-center gap-x-3">
+            <div class="w-2.5 h-2.5 rounded-full ${isActive ? 'bg-emerald-500' : 'bg-zinc-600'}"></div>
+            <div>
+              <div class="font-semibold">${bot.name}</div>
+              <div class="text-[10px] text-zinc-500">HP: ${bot.hp}</div>
+            </div>
+          </div>
+          <div class="flex items-center gap-x-2">
+            <button data-name="${bot.name}" class="toggle-btn px-3 py-1 text-xs rounded-lg border ${isActive ? 'border-emerald-600 text-emerald-400 hover:bg-emerald-950' : 'border-zinc-700 hover:bg-zinc-800'}">
+              ${isActive ? 'Выключить' : 'Включить'}
+            </button>
+          </div>
+        `;
+
+        // Toggle button
+        const toggleBtn = div.querySelector('.toggle-btn');
+        toggleBtn.addEventListener('click', () => {
+          const newActive = !isActive;
+          socket.emit('admin:toggleBot', { name: bot.name, active: newActive });
+        });
+
+        container.appendChild(div);
+      });
+
+      document.getElementById('bots-count').textContent = `${bots.length} ботов`;
+    }
+
+    // Load initial bots
+    socket.emit('admin:getBots');
+
+    socket.on('admin:bots', (bots) => {
+      renderBots(bots);
+    });
+
+    socket.on('admin:botUpdate', ({ name, active, isNew }) => {
+      // Refresh list
+      socket.emit('admin:getBots');
+    });
+
+    // Global pause
+    const pauseBtn = document.getElementById('pause-btn');
+    let paused = false;
+
+    pauseBtn.addEventListener('click', () => {
+      paused = !paused;
+      socket.emit('admin:pauseAll', { paused });
+      pauseBtn.textContent = paused ? '▶ Возобновить всех' : '⏸ Пауза всех ботов';
+      pauseBtn.classList.toggle('bg-red-600', paused);
+    });
+
+    socket.on('admin:botsPaused', (isPaused) => {
+      paused = isPaused;
+      pauseBtn.textContent = paused ? '▶ Возобновить всех' : '⏸ Пауза всех ботов';
+    });
+
+    // Add bot
+    const addBtn = document.getElementById('add-bot-btn');
+    const nameInput = document.getElementById('new-bot-name');
+
+    addBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim();
+      if (!name) return;
+      socket.emit('admin:addBot', { name });
+      nameInput.value = '';
+    });
+
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') addBtn.click();
+    });
+
+    // Initial load
+    setTimeout(() => {
+      socket.emit('admin:getBots');
+    }, 300);
+  </script>
+</body>
+</html>
