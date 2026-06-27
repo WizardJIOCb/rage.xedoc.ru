@@ -1,4 +1,4 @@
-// RAGE ARENA — Client (updated with clickable mentions in text)
+// RAGE ARENA — Client
 const socket = io();
 
 let currentUser = null;
@@ -154,7 +154,9 @@ chatArea.addEventListener('click', (e) => {
   if (t.classList.contains('sender') || t.classList.contains('mention')) {
     let name = t.dataset.name || t.textContent.trim();
     if (name.startsWith('@')) name = name.slice(1);
-    if (name) insertMention(name);
+    if (name) {
+      insertMention(name);
+    }
   }
 });
 
@@ -291,23 +293,6 @@ function appendMessage(msg, skipScroll = false) {
       <div>${renderMessageWithMentions(msg.text)}</div>
       <div class="text-[9px] text-right mt-px opacity-40 tabular-nums">${timeStr}</div>
     `;
-
-    // Make sender nickname clickable
-    const senderEl = el.querySelector('.sender');
-    if (senderEl) {
-      senderEl.addEventListener('click', () => {
-        insertMention(msg.sender);
-      });
-    }
-
-    // Make @mentions in the message text clickable
-    const mentionEls = el.querySelectorAll('.mention');
-    mentionEls.forEach(mEl => {
-      const name = mEl.dataset.name || mEl.textContent.replace(/^@/, '');
-      mEl.addEventListener('click', () => {
-        if (name) insertMention(name);
-      });
-    });
   }
 
   chatArea.appendChild(el);
