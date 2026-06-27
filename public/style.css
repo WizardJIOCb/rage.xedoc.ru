@@ -1,0 +1,142 @@
+/* Custom styles for RAGE ARENA */
+
+:root {
+  --red: #e11d48;
+}
+
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: #3f3f46;
+  border-radius: 20px;
+}
+.custom-scroll::-webkit-scrollbar-thumb:hover {
+  background: #52525b;
+}
+
+/* Player cards */
+.player-card {
+  transition: all 0.1s ease;
+  border: 1px solid #27272a;
+}
+
+.player-card:hover {
+  border-color: #444;
+  transform: translateX(1px);
+}
+
+.player-card.dead {
+  opacity: 0.75;
+  background: #18181b;
+  border-color: #3f3f46;
+}
+
+.player-card.dead .hp-bar {
+  background: #450a0a;
+}
+
+.player-card .hp-bar {
+  height: 6px;
+  background: #27272a;
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.player-card .hp-fill {
+  height: 100%;
+  transition: width 0.25s cubic-bezier(0.23, 1.0, 0.32, 1);
+  border-radius: 999px;
+}
+
+.hp-fill.high { background: #22c55e; }
+.hp-fill.mid { background: #eab308; }
+.hp-fill.low { background: #ef4444; }
+
+.player-card .name {
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+/* Messages */
+.message {
+  max-width: 78%;
+  animation: fadeSlide 0.15s ease;
+}
+
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.system {
+  max-width: 100%;
+  text-align: center;
+  font-size: 12.5px;
+  color: #64748b;
+}
+
+.message.death {
+  max-width: 100%;
+  text-align: center;
+  background: #450a0a;
+  color: #fda4af;
+  border-radius: 999px;
+  padding: 3px 14px;
+  font-size: 13px;
+  display: inline-block;
+}
+
+.message.own {
+  margin-left: auto;
+  background: #27272a;
+  border-bottom-right-radius: 4px;
+}
+
+.message.other {
+  background: #18181b;
+  border-bottom-left-radius: 4px;
+}
+
+.message .sender {
+  font-size: 11px;
+  font-weight: 700;
+  color: #f43f5e;
+  margin-bottom: 1px;
+}
+
+.message.own .sender {
+  color: #64748b;
+}
+
+.attack-flash {
+  animation: attackFlash 420ms ease;
+}
+
+@keyframes attackFlash {
+  0%, 100% { background-color: transparent; }
+  15% { background-color: #450a0a; }
+}
+
+/* HP bar in header status */
+#my-status {
+  font-size: 11px;
+}
+
+/* Chat container nice background */
+#chat-area {
+  background-color: #0a0a0a;
+}
+
+/* Player list HP */
+.hp-container {
+  background: #18181b;
+  border-radius: 999px;
+  height: 7px;
+  overflow: hidden;
+}
