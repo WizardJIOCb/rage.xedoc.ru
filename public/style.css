@@ -116,6 +116,16 @@ body {
   color: #fb7185;
 }
 
+.message .mention {
+  color: #fb7185;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.message .mention:hover {
+  text-decoration: underline;
+}
+
 .message.own .sender {
   color: #64748b;
 }
