@@ -61,12 +61,24 @@ const SWEAR_WORDS = [
   'ебало', 'уеб', 'уёб', 'гандон', 'мудак', 'мудила', 'дебил', 'идиот',
   'тупой', 'тупая', 'лошара', 'чмо', 'чмошник', 'пидар', 'пидор', 'пидр',
   'шлюха', 'шлюх', 'курва', 'fuck', 'shit', 'bitch', 'asshole', 'cunt', 'dick',
-  'хуйло', 'пиздюл', 'долбоеб', 'мудозв', 'пидарас', 'ебло', 'хуепу', 'пиздабол'
+  'хуйло', 'пиздюл', 'долбоеб', 'мудозв', 'пидарас', 'ебло', 'хуепу', 'пиздабол',
+  // added from SWEAR_PARTS to ensure all bot taunts/insults trigger damage
+  'ублюдок', 'гнида', 'мразь', 'мудило', 'пиздюлина', 'долбоящер', 'еблоёбина',
+  'мудозвон', 'пидарас', 'шлюхоблядь', 'пиздабол', 'хуепутало', 'дебилюга',
+  'сука позорная', 'мразота', 'гнильё', 'вонючий', 'сраный', 'недоёбок', 'блядун',
+  'пиздец полный', 'тварь позорная', 'пиздострадалец', 'еблофил', 'мудак с дипломом',
+  'сука-недоразумение', 'гандон вселенский', 'пиздец в человеческом обличии',
+  'дегенерат премиум', 'хуй в кармане', 'мудила экстра', 'блядун-неудачник',
+  'ебаный в рот без смазки', 'тупой как пробка', 'гнида с характером',
+  'шлюха-недоделок', 'конченый проект', 'пиздюк без таланта', 'еблан-виртуоз',
+  'мразь высшей пробы', 'сука-терминатор', 'ебло-монстр', 'пиздец-артист',
+  'мудак-олимпиец', 'гандон-визионер', 'дегенерат-легенда', 'хуйло-чемпион'
 ];
 
 function containsSwear(text) {
   const lower = text.toLowerCase();
-  return SWEAR_WORDS.some(word => lower.includes(word));
+  return SWEAR_WORDS.some(word => lower.includes(word)) ||
+         SWEAR_PARTS.some(word => lower.includes(word));
 }
 
 function extractMentions(text) {
@@ -453,8 +465,9 @@ function triggerBotMassHit(target) {
     let text = `@${target} ты %swear%!`;
     if (style.insults.length > 0) {
       const template = style.insults[Math.floor(Math.random() * style.insults.length)];
-      const swear = SWEAR_PARTS[Math.floor(Math.random() * SWEAR_PARTS.length)];
-      text = template.replace('%target%', target).replace(/%swear%/g, swear);
+      text = template.replace('%target%', target).replace(/%swear%/g, () => SWEAR_PARTS[Math.floor(Math.random() * SWEAR_PARTS.length)]);
+    } else {
+      text = text.replace(/%swear%/g, () => SWEAR_PARTS[Math.floor(Math.random() * SWEAR_PARTS.length)]);
     }
     processMessage(bot, text, true);
   });

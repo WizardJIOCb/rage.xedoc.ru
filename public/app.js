@@ -175,6 +175,11 @@ function renderPlayers() {
 
   // Update my status if exists
   updateMyStatus();
+
+  // Mobile count
+  if (typeof updateMobilePlayersCount === 'function') {
+    updateMobilePlayersCount();
+  }
 }
 
 function insertMention(name) {
@@ -451,3 +456,40 @@ usernameInput.addEventListener('focus', () => {
 });
 
 console.log('%c[RAGE ARENA] Client ready. Open multiple tabs!', 'color:#444');
+
+// === Mobile participants drawer (badass mobile UX) ===
+function toggleParticipantsSidebar(show) {
+  const sidebar = document.getElementById('players-sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (!sidebar || !overlay) return;
+
+  if (show) {
+    sidebar.classList.remove('-translate-x-full');
+    sidebar.classList.add('translate-x-0');
+    overlay.classList.remove('hidden');
+    overlay.classList.add('block');
+  } else {
+    sidebar.classList.remove('translate-x-0');
+    sidebar.classList.add('-translate-x-full');
+    overlay.classList.remove('block');
+    overlay.classList.add('hidden');
+  }
+}
+
+function updateMobilePlayersCount() {
+  const countEl = document.getElementById('mobile-players-count');
+  const playersCount = document.getElementById('players-count');
+  if (countEl && playersCount) {
+    countEl.textContent = playersCount.textContent || '0/0';
+  }
+}
+
+// Close sidebar when tapping a player card on mobile (nice touch)
+document.addEventListener('click', (e) => {
+  const sidebar = document.getElementById('players-sidebar');
+  if (sidebar && sidebar.classList.contains('translate-x-0')) {
+    if (e.target.closest('.player-card')) {
+      setTimeout(() => toggleParticipantsSidebar(false), 120);
+    }
+  }
+});

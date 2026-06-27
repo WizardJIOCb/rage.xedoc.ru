@@ -30,6 +30,29 @@ body {
   transform: translateX(1px);
 }
 
+/* Mobile badass tweaks */
+@media (max-width: 767px) {
+  .player-card {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  #chat-area {
+    padding: 12px;
+    font-size: 14.5px;
+  }
+
+  #message-input {
+    font-size: 15px;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .message {
+    font-size: 14.5px;
+  }
+}
+
 .player-card.dead {
   opacity: 0.75;
   background: #18181b;
