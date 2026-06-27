@@ -343,12 +343,8 @@ function escapeRegex(str) {
 function renderMessageWithMentions(text) {
   let escaped = escapeHtml(text);
 
-  // 1. Wrap @mentions (keeps the @ symbol)
-  escaped = escaped.replace(/@([A-Za-z0-9_\u0400-\u04FF]{2,20})/g, (full, name) => {
-    return `<span class="nick mention" data-name="${name}">${full}</span>`;
-  });
-
-  // 2. Wrap bare known usernames (very useful for system messages like "Bob joined", death texts, etc.)
+  // 1. Wrap bare known usernames FIRST (on plain text).
+  // This handles system messages, deaths, etc. and avoids breaking HTML attributes later.
   if (Array.isArray(users) && users.length > 0) {
     // Longest first to avoid partial matches
     const sorted = [...users].sort((a, b) => b.username.length - a.username.length);
@@ -359,6 +355,11 @@ function renderMessageWithMentions(text) {
       escaped = escaped.replace(regex, `<span class="nick" data-name="${name}">${safe}</span>`);
     });
   }
+
+  // 2. Then wrap @mentions (keeps the @ symbol). This runs on text that may now contain bare spans.
+  escaped = escaped.replace(/@([A-Za-z0-9_\u0400-\u04FF]{2,20})/g, (full, name) => {
+    return `<span class="nick mention" data-name="${name}">${full}</span>`;
+  });
 
   return escaped;
 }
