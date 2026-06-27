@@ -42,3 +42,21 @@ npm start
 бля, сука, пиздец, хуй, ебать, мудак, дебил, идиот, чмо, и другие + немного английских.
 
 Создавай свой хаос! 🔥
+
+---
+
+## Деплой на продакшн
+
+См. подробную инструкцию в [DEPLOY.md](DEPLOY.md)
+
+Коротко:
+- Сервер: 82.146.42.213
+- Путь: `/var/www/rage.xedoc.ru`
+- Домен: `rage.xedoc.ru`
+- Используется git push + post-receive hook + PM2 + Nginx + Let's Encrypt SSL
+
+Пример:
+```bash
+git remote add production ssh://root@82.146.42.213/var/www/rage.xedoc.ru.git
+git push production main
+```
